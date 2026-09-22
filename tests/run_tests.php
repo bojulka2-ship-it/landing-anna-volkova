@@ -235,6 +235,12 @@ check('пустой ник при telegram → HTTP 400', $status === 400, "по
 
 clear_rate();
 $p = valid_payload();
+$p['username'] = '@maria_ivanova';
+[$status, $body] = send_req($p);
+check('ник с ведущим @ → HTTP 200', $status === 200, "получено $status");
+
+clear_rate();
+$p = valid_payload();
 $p['method'] = 'call';
 unset($p['username']);
 [$status] = send_req($p);

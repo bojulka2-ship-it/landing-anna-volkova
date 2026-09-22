@@ -181,6 +181,7 @@ if (!in_array($method, $allowedMethods, true)) {
 }
 
 $username = trim((string)($data['username'] ?? ''));
+$username = preg_replace('/^@+/', '', $username);
 $methodsWithUsername = ['max', 'vk', 'whatsapp', 'telegram'];
 if (in_array($method, $methodsWithUsername, true)) {
     if ($username === '') {

@@ -152,7 +152,7 @@
     }
 
     if (METHODS_WITH_USERNAME[methodSelect.value]) {
-      var u = usernameInput.value.trim();
+      var u = normalizeUsername(usernameInput.value);
       if (!/^[A-Za-z0-9_]{4,}$/.test(u)) {
         errors.push("Укажите ник в мессенджере: латиница, цифры и «_», минимум 4 символа (например: anna_ivanova).");
         setFieldError(usernameInput);
@@ -167,6 +167,11 @@
   }
 
   /* --- Отправка --- */
+  /* Ведущий «@» из плейсхолдера допустим: @user == user */
+  function normalizeUsername(value) {
+    return value.trim().replace(/^@+/, "");
+  }
+
   function buildPayload() {
     var method = methodSelect.value;
     var payload = {
@@ -177,7 +182,7 @@
       company: document.getElementById("company").value
     };
     if (METHODS_WITH_USERNAME[method]) {
-      payload.username = usernameInput.value.trim();
+      payload.username = normalizeUsername(usernameInput.value);
     }
     return payload;
   }
