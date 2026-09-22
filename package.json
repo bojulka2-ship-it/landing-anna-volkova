@@ -1,0 +1,11 @@
+{
+  "name": "landing-repetitor-english",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Лендинг репетитора английского языка (Тверь/Москва) — статика + PHP-форма",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "check": "node --check js/script.js && node --check js/config.js",
+    "test:php": "php tests/run_tests.php"
+  }
+}

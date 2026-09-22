@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Пример письма менеджеру (демо)</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .demo-wrap { max-width: 720px; }
+    .demo-note {
+      background: #fff4ee;
+      border: 2px solid var(--color-accent);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    .mail-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .mail-head {
+      background: var(--color-primary);
+      color: #fff;
+      padding: var(--space-4);
+    }
+    .mail-head p { margin: 0 0 var(--space-1); font-size: 14px; color: #c9d5e4; }
+    .mail-head strong { font-size: 1.1rem; }
+    .mail-body { padding: var(--space-5); }
+    .mail-body dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-4); }
+    .mail-body dt { font-weight: 700; color: var(--color-primary); }
+    .mail-body dd { margin: 0; overflow-wrap: break-word; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="index.html">Анна&nbsp;Волкова<span class="logo-sub">репетитор английского</span></a>
+      <a class="header-phone" href="tel:+79000000000">+7 (900) 000-00-00</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section">
+      <div class="container demo-wrap">
+        <h1>Пример письма менеджеру</h1>
+
+        <div class="demo-note">
+          <p><strong>Это демонстрационная страница.</strong> На GitHub Pages форма заявок не отправляется: при сабмите показывается сообщение «демо-режим» со ссылкой на эту страницу. Реальные заявки приходят на почту менеджера только после размещения на хостинге с PHP (см. README, раздел «Запуск на реальном домене»).</p>
+        </div>
+
+        <p>Так выглядит письмо, которое получит менеджер после отправки формы с сайта:</p>
+
+        <div class="mail-card">
+          <div class="mail-head">
+            <p>Кому: [рабочая почта менеджера — плейсхолдер]</p>
+            <p>Тема: Новая заявка с лендинга — репетитор английского</p>
+            <strong>Заявка №1 · получена сейчас</strong>
+          </div>
+          <div class="mail-body">
+            <dl>
+              <dt>Имя</dt>
+              <dd>Мария</dd>
+              <dt>Телефон</dt>
+              <dd>+7 (999) 123-45-67</dd>
+              <dt>Способ связи</dt>
+              <dd>Telegram</dd>
+              <dt>Ник</dt>
+              <dd>maria_ivanova</dd>
+              <dt>Страница</dt>
+              <dd>index.html (лендинг)</dd>
+              <dt>Дата</dt>
+              <dd>текущие дата и время (МСК)</dd>
+              <dt>IP</dt>
+              <dd>адрес посетителя (для анти-спам rate-limit)</dd>
+            </dl>
+          </div>
+        </div>
+
+        <p style="margin-top: var(--space-5);"><a class="btn btn-primary" href="index.html">← Вернуться на сайт</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-col">
+        <p class="footer-brand">Анна Волкова&nbsp;— репетитор английского языка</p>
+      </div>
+      <div class="footer-col">
+        <p><a class="footer-phone" href="tel:+79000000000">+7 (900) 000-00-00</a></p>
+      </div>
+      <div class="footer-col footer-legal">
+        <p>© 2026. Демо-страница (noindex).</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

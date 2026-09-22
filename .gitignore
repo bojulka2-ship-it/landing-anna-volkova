@@ -1,0 +1,6 @@
+# Секреты и локальные файлы — никогда не коммитить
+config/managers.local.php
+logs/*.log
+logs/rate-limit.json
+site/
+node_modules/
