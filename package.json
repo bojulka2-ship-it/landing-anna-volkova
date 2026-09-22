@@ -5,6 +5,7 @@
   "description": "Лендинг репетитора английского языка (Тверь/Москва) — статика + PHP-форма",
   "scripts": {
     "build": "node scripts/build.js",
+    "scan:pii": "node scripts/build.js && node scripts/scan_site_pii.js",
     "check": "node --check js/core.js && node --check js/script.js && node --check js/config.js",
     "test": "npm run check && npm run test:js && npm run test:php",
     "test:js": "node --test tests/js_core.test.js",

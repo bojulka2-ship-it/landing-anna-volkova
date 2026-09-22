@@ -115,6 +115,22 @@ var API_URL = "/send.php";      // PHP-хостинг (основной)
 
 Демо = публикация папки `site/` на GitHub Pages (`*.github.io`).
 
+### Публикация на GitHub Pages (без ПДн)
+
+1. Создать репозиторий на GitHub и добавить remote:
+   ```bash
+   git remote add origin git@github.com:USER/REPO.git
+   git push -u origin master
+   ```
+2. В репозитории: **Settings → Pages → Source = GitHub Actions**.
+3. Push в `master` запускает `.github/workflows/pages.yml`:
+   - `node scripts/build.js` → чистая `site/` (без `send.php`, `config/`, `logs/`, `tests/`);
+   - `node scripts/scan_site_pii.js` → падает, если в `site/` найдены ПДн/секреты/служебные файлы;
+   - деплой артефакта `site/` на Pages.
+4. Логи ПДн и `managers.local.php` — в `.gitignore`, в git-истории их нет.
+
+Повторный локальный прогон: `npm run scan:pii`.
+
 Чек-лист проверки демо:
 
 1. Открыть главную: все секции на месте, телефон `+7 (900) 000-00-00` в 4 местах index.html.
