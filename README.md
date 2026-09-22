@@ -57,9 +57,11 @@ php -S 127.0.0.1:8080
 
 ```bash
 node --check js/script.js && node --check js/config.js
+php -l send.php && php -l scripts/prune-logs.php
 php tests/run_tests.php      # ожидается 100% PASS
 node scripts/build.js        # сборка site/
 npm run build                # то же самое
+php scripts/prune-logs.php   # опционально: очистка ПДн-лога старше 90 дней
 ```
 
 ## Конфигурация
@@ -87,10 +89,19 @@ var API_URL = "/send.php";      // PHP-хостинг (основной)
 
 ### Защита формы
 
-- Имя ≤120 символов; телефон 10–15 цифр; ник `[A-Za-z0-9_]{4,}` (для мессенджеров); e-mail-валидация не используется — поле e-mail исключено из формы по решению заказчика.
+- Имя ≤120 символов (без управляющих символов); телефон 10–15 цифр; ник `[A-Za-z0-9_]{4,}` (для мессенджеров); e-mail-валидация не используется — поле e-mail исключено из формы по решению заказчика.
 - Согласие на ПДн обязательно: клиент блокирует отправку, сервер отвечает 400.
 - Honeypot: скрытое поле `company`; если заполнено — тихий `ok`, письмо не шлётся.
-- Rate-limit: ≤5 заявок с одного IP за 60 сек, иначе 429.
+- Rate-limit: ≤5 заявок с одного IP за 60 сек, иначе 429; файл `logs/rate-limit.json` с `flock`, права `0600`.
+- Приём только JSON (`Content-Type: application/json`); form-urlencoded → 415; тело >64 КБ → 413.
+- Логи `logs/submissions.log` / `rate-limit.json` — права `0600` после записи; очистка: `php scripts/prune-logs.php 90`.
+
+### Безопасность (аудит)
+
+- Заголовки (Apache, корневой `.htaccess`): `nosniff`, `X-Frame-Options`, `Referrer-Policy`, CSP `default-src 'self'` …; на **nginx** задать те же header + `location ^~ /config/ { deny all; }` и `location ^~ /logs/ { deny all; }` (плюс `tests/`, `scripts/`).
+- Секреты: приоритет **env** (`TO_EMAIL`, `FROM_EMAIL`, `MAIL_MODE`, …) > `config/managers.local.php` > шаблон `managers.php`.
+- ПДн-лог: `php scripts/prune-logs.php [дни]` (по умолчанию 90 дней) — cron/задание на хостинге.
+- CI: `.github/workflows/ci.yml` — `node --check`, `php -l`, `php tests/run_tests.php`, `node scripts/build.js` на каждый push/PR.
 
 ### 152-ФЗ
 
@@ -122,9 +133,9 @@ var API_URL = "/send.php";      // PHP-хостинг (основной)
 1. **Домен** — купить у российского регистратора (REG.RU, RU-CENTER, Names.ru и т.п.).
 2. **Хостинг** — выбрать хостинг в РФ с поддержкой PHP 8.x (REG.RU, Beget, Timeweb, Sprinthost и аналоги). Данные заявок остаются в РФ — требование 152-ФЗ выполнено.
 3. **Загрузка** — залить на хостинг содержимое `site/` в корень (public_html) **плюс** `send.php`, папки `config/` и `logs/` (этих файлов нет в `site/` — они нужны только на сервере). Альтернатива: залить весь корень проекта, но убрать служебные папки из веб-доступа.
-4. **Конфиг** — в `config/managers.local.php` указать реальные `TO_EMAIL`, `FROM_EMAIL`, поставить `MAIL_MODE => 'test'`.
+4. **Конфиг** — задать `TO_EMAIL`, `FROM_EMAIL` через **env** (приоритет) или в `config/managers.local.php`; поставить `MAIL_MODE => 'test'`.
 5. **Телефон и реквизиты** — заменить `+7 (900) 000-00-00` на реальный номер во всех 4 местах `index.html` (и в футере `policy.html`/`zayavka.html` при необходимости); в `policy.html` заполнить реквизиты оператора (ФИО, ИНН, ОГРНИП, адрес, e-mail) вместо плейсхолдеров.
-6. **Проверка защиты** — открыть в браузере `/config/managers.local.php` и `/logs/submissions.log` — сервер должен отдавать **403** (файлы `.htaccess` уже лежат в папках; на nginx приписать `deny all` для `/config/` и `/logs/`).
+6. **Проверка защиты** — открыть в браузере `/config/managers.local.php` и `/logs/submissions.log` — сервер должен отдавать **403** (`.htaccess` в папках + корневой `.htaccess`; на nginx — `deny all` для `/config/`, `/logs/`, `/tests/`, `/scripts/`).
 7. **Тестовое письмо** — отправить заявку с сайта, убедиться, что в `test`-режиме запись появилась в логе; затем переключить `MAIL_MODE => 'real'` и отправить ещё одну — письмо должно прийти на `TO_EMAIL`.
 8. **SPF/DKIM** — настроить на почтовом ящике `FROM_EMAIL` (справка регистратора/хостинга), иначе письма попадут в спам.
 9. **Передача заказчику** — отдать доступы: хостинг, домен, почта менеджера, админка (если есть), этот README и `ACCEPTANCE_CHECKLIST.md`.

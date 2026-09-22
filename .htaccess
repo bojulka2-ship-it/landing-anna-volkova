@@ -1,0 +1,12 @@
+# Apache: security headers + запрет служебных путей (если AllowOverride включён).
+# На nginx — см. README, раздел «Запуск на реальном домене».
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Content-Security-Policy "default-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
+</IfModule>
+
+# Служебные каталоги — вне веб-доступа (дубль .htaccess внутри папок).
+RedirectMatch 403 ^/(config|logs|tests|scripts)(/|$)

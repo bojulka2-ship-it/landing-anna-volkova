@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: JS syntax
+        run: node --check js/script.js && node --check js/config.js
+
+      - name: PHP syntax
+        run: php -l send.php && php -l scripts/prune-logs.php && php -l tests/run_tests.php
+
+      - name: Form tests
+        run: php tests/run_tests.php
+
+      - name: Build site/
+        run: node scripts/build.js
