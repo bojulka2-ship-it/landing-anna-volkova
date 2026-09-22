@@ -2,6 +2,12 @@
 (function () {
   "use strict";
 
+  var CORE = window.SITE_CORE;
+  if (!CORE) {
+    console.error("SITE_CORE не загружен: подключите js/core.js до js/script.js");
+    return;
+  }
+
   var CFG = window.SITE_CONFIG || {
     API_URL: "/send.php",
     IS_GITHUB_PAGES: false,
@@ -9,7 +15,7 @@
     PHONE_DISPLAY: "+7 (900) 000-00-00"
   };
 
-  var PHONE_PLACEHOLDER = "+7 (900) 000-00-00";
+  var PHONE_PLACEHOLDER = CORE.PHONE_PLACEHOLDER;
 
   /* --- Год в футере --- */
   var yearEl = document.getElementById("year");
@@ -34,29 +40,11 @@
   var messageEl = document.getElementById("form-message");
   var submitBtn = document.getElementById("submit-btn");
 
-  /* --- Маска телефона: +7 (XXX) XXX-XX-XX, ровно 11 цифр --- */
-  function maskPhone(value) {
-    var digits = value.replace(/\D/g, "");
-    if (digits.charAt(0) === "8") digits = "7" + digits.slice(1);
-    if (digits.charAt(0) !== "7") digits = "7" + digits;
-    digits = digits.slice(0, 11);
-
-    var out = "+7";
-    if (digits.length > 1) out += " (" + digits.slice(1, 4);
-    if (digits.length >= 4) out += ") " + digits.slice(4, 7);
-    if (digits.length >= 7) out += "-" + digits.slice(7, 9);
-    if (digits.length >= 9) out += "-" + digits.slice(9, 11);
-    return out;
-  }
-
-  function phoneDigits() {
-    return phoneInput.value.replace(/\D/g, "");
-  }
-
+  /* --- Маска телефона --- */
   phoneInput.addEventListener("input", function () {
     var pos = phoneInput.selectionStart;
     var before = phoneInput.value;
-    phoneInput.value = maskPhone(phoneInput.value);
+    phoneInput.value = CORE.maskPhone(phoneInput.value);
     if (pos !== null && phoneInput.value.length >= before.length) {
       phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
     }
@@ -74,10 +62,8 @@
   });
 
   /* --- Условное поле ника --- */
-  var METHODS_WITH_USERNAME = { max: true, vk: true, whatsapp: true, telegram: true };
-
   function syncUsernameRow() {
-    var need = !!METHODS_WITH_USERNAME[methodSelect.value];
+    var need = CORE.needsUsername(methodSelect.value);
     usernameRow.hidden = !need;
     usernameInput.required = need;
     if (!need) {
@@ -131,60 +117,58 @@
     field.removeAttribute("aria-invalid");
   }
 
-  /* --- Валидация на клиенте --- */
-  function validate() {
-    var errors = [];
+  var FIELD_INPUTS = null;
 
-    var nameInput = document.getElementById("name");
-    var name = nameInput.value.trim();
-    if (!name) {
-      errors.push("Укажите имя.");
-      setFieldError(nameInput);
-    } else if (name.length > 120) {
-      errors.push("Имя слишком длинное (максимум 120 символов).");
-      setFieldError(nameInput);
+  function fieldInput(name) {
+    if (!FIELD_INPUTS) {
+      FIELD_INPUTS = {
+        name: document.getElementById("name"),
+        phone: phoneInput,
+        username: usernameInput,
+        consent: consentInput
+      };
     }
-
-    var digits = phoneDigits();
-    if (digits.length !== 11) {
-      errors.push("Введите телефон полностью: 11 цифр в формате " + PHONE_PLACEHOLDER + ".");
-      setFieldError(phoneInput);
-    }
-
-    if (METHODS_WITH_USERNAME[methodSelect.value]) {
-      var u = normalizeUsername(usernameInput.value);
-      if (!/^[A-Za-z0-9_]{4,}$/.test(u)) {
-        errors.push("Укажите ник в мессенджере: латиница, цифры и «_», минимум 4 символа (например: anna_ivanova).");
-        setFieldError(usernameInput);
-      }
-    }
-
-    if (!consentInput.checked) {
-      errors.push("Отметьте согласие на обработку персональных данных.");
-    }
-
-    return errors;
+    return FIELD_INPUTS[name];
   }
 
-  /* --- Отправка --- */
-  /* Ведущий «@» из плейсхолдера допустим: @user == user */
-  function normalizeUsername(value) {
-    return value.trim().replace(/^@+/, "");
+  /* --- Валидация: правила в js/core.js, разметка ошибок здесь --- */
+  function validate() {
+    var errors = CORE.validateForm({
+      name: document.getElementById("name").value,
+      phone: phoneInput.value,
+      method: methodSelect.value,
+      username: usernameInput.value,
+      consent: consentInput.checked
+    });
+
+    clearFieldError(document.getElementById("name"));
+    clearFieldError(phoneInput);
+    clearFieldError(usernameInput);
+
+    var messages = [];
+    for (var i = 0; i < errors.length; i++) {
+      messages.push(errors[i].message);
+      if (errors[i].field !== "consent") {
+        var input = fieldInput(errors[i].field);
+        if (input) setFieldError(input);
+      }
+    }
+    return messages;
+  }
+
+  function readFormFields() {
+    return {
+      name: document.getElementById("name").value,
+      phone: phoneInput.value,
+      method: methodSelect.value,
+      username: usernameInput.value,
+      consent: consentInput.checked,
+      company: document.getElementById("company").value
+    };
   }
 
   function buildPayload() {
-    var method = methodSelect.value;
-    var payload = {
-      name: document.getElementById("name").value.trim(),
-      phone: phoneInput.value,
-      method: method,
-      consent: consentInput.checked ? "1" : "0",
-      company: document.getElementById("company").value
-    };
-    if (METHODS_WITH_USERNAME[method]) {
-      payload.username = normalizeUsername(usernameInput.value);
-    }
-    return payload;
+    return CORE.buildPayload(readFormFields());
   }
 
   function renderSuccess(isDemo) {
@@ -197,7 +181,8 @@
     } else {
       showMessage(
         "Спасибо! Заявка отправлена. Перезвоню в течение 2 часов. Если нужно срочно — позвоните: " +
-          PHONE_PLACEHOLDER + ".",
+          PHONE_PLACEHOLDER +
+          ".",
         "success",
         false
       );
@@ -208,14 +193,15 @@
   /* Явная очистка: form.reset() не всегда убирает значение у tel-поля с маской */
   function resetForm() {
     form.reset();
+    var state = CORE.emptyFormState();
     var nameInput = document.getElementById("name");
     var companyInput = document.getElementById("company");
-    nameInput.value = "";
-    phoneInput.value = "";
-    usernameInput.value = "";
-    companyInput.value = "";
-    methodSelect.value = "call";
-    consentInput.checked = false;
+    nameInput.value = state.name;
+    phoneInput.value = state.phone;
+    usernameInput.value = state.username;
+    companyInput.value = state.company;
+    methodSelect.value = state.method;
+    consentInput.checked = state.consent;
     clearFieldError(nameInput);
     clearFieldError(phoneInput);
     clearFieldError(usernameInput);

@@ -56,9 +56,11 @@ php -S 127.0.0.1:8080
 Проверка:
 
 ```bash
-node --check js/script.js && node --check js/config.js
+node --check js/core.js && node --check js/script.js && node --check js/config.js
+node --test tests/js_core.test.js   # JS unit (маска, валидация, resetForm)
 php -l send.php && php -l scripts/prune-logs.php
 php tests/run_tests.php      # ожидается 100% PASS
+npm test                     # check + JS unit + PHP
 node scripts/build.js        # сборка site/
 npm run build                # то же самое
 php scripts/prune-logs.php   # опционально: очистка ПДн-лога старше 90 дней
@@ -101,7 +103,7 @@ var API_URL = "/send.php";      // PHP-хостинг (основной)
 - Заголовки (Apache, корневой `.htaccess`): `nosniff`, `X-Frame-Options`, `Referrer-Policy`, CSP `default-src 'self'` …; на **nginx** задать те же header + `location ^~ /config/ { deny all; }` и `location ^~ /logs/ { deny all; }` (плюс `tests/`, `scripts/`).
 - Секреты: приоритет **env** (`TO_EMAIL`, `FROM_EMAIL`, `MAIL_MODE`, …) > `config/managers.local.php` > шаблон `managers.php`.
 - ПДн-лог: `php scripts/prune-logs.php [дни]` (по умолчанию 90 дней) — cron/задание на хостинге.
-- CI: `.github/workflows/ci.yml` — `node --check`, `php -l`, `php tests/run_tests.php`, `node scripts/build.js` на каждый push/PR.
+- CI: `.github/workflows/ci.yml` — `node --check`, JS unit (`node --test`), `php -l`, `php tests/run_tests.php`, `node scripts/build.js` на каждый push/PR.
 
 ### 152-ФЗ
 
@@ -146,6 +148,7 @@ var API_URL = "/send.php";      // PHP-хостинг (основной)
 
 **Автотесты (`php tests/run_tests.php`, 26 проверок):** валидная заявка и режим test; согласие (нет / 0); honeypot (тихий ok, без лога); имя (пустое, >120); телефон (3 цифры / 10 цифр / 20 цифр); ник (короткий, кириллица, пустой, необязателен для «перезвонить»); неизвестный способ связи; rate-limit (5×200 → 6-й 429); GET → 405; пустое тело → 400.
 
-**Синтаксис:** `node --check js/script.js js/config.js`, `php -l send.php` и др.
+**Синтаксис:** `node --check js/core.js js/script.js js/config.js`, `php -l send.php` и др.  
+**JS unit:** `node --test tests/js_core.test.js` (маска, валидация, resetForm — без зависимостей).
 
 **Ручная браузерная проверка:** маска телефона и условные поля в живом UI; адаптив 320 / 375 / 768 / 1024 / 1440; отсутствие горизонтального скролла; липкая панель; `prefers-reduced-motion`; фокус и клавиатурная навигация; видимость ссылки на политику в новой вкладке; тексты ошибок/успеха в форме.

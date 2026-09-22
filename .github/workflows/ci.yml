@@ -19,7 +19,10 @@ jobs:
           php-version: "8.2"
 
       - name: JS syntax
-        run: node --check js/script.js && node --check js/config.js
+        run: node --check js/core.js && node --check js/script.js && node --check js/config.js
+
+      - name: JS unit tests
+        run: node --test tests/js_core.test.js
 
       - name: PHP syntax
         run: php -l send.php && php -l scripts/prune-logs.php && php -l tests/run_tests.php

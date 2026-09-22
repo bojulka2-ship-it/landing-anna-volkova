@@ -85,8 +85,8 @@
 
 | # | Проверка | Статус |
 |---|----------|--------|
-| 7.1 | `npm test` → 100% PASS (27 проверок) | ✓ |
-| 7.2 | `node --check js/script.js js/config.js` → без ошибок | ✓ |
+| 7.1 | `npm test` → 100% PASS (PHP 27 + JS unit 15) | ✓ |
+| 7.2 | JS unit-тесты `node --test tests/js_core.test.js` → 15/15; `node --check` — без ошибок | ✓ |
 | 7.3 | `php -l send.php` → без ошибок синтаксиса | ✓ |
 | 7.4 | `node scripts/build.js` → папка `site/` собрана, без send.php/config/logs | ✓ |
 
