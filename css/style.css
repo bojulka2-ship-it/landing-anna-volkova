@@ -528,6 +528,10 @@ a:hover { color: var(--color-accent-dark); }
   gap: var(--space-2);
 }
 
+.form-row[hidden] {
+  display: none;
+}
+
 .form-row label {
   font-weight: 600;
   font-size: 15px;
